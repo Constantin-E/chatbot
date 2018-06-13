@@ -1,15 +1,18 @@
 """
 This is the template server side for ChatBot
 """
-from bottle import route, run, template, static_file, request, debug
+from bottle import route, run, template, static_file, request, response, debug
 import json
 import re
 import random
 import os
 from sys import argv
+import feedparser
+from datetime import datetime
 
-DEBUG = os.environ.get("DEBUG")
-debug(True)
+#DEBUG = os.environ.get("DEBUG")
+#debug(False)
+
 
 conversation = []
 
@@ -37,25 +40,36 @@ def add_to_history(speaker, msg):
 def process_sentence(user_message):
     user_words = re.sub("[^\w]", " ", user_message).split()
     global conversation
+    if len(conversation)==1:
+        if "my name is" in user_message:
+            username = user_words[len(user_words)-1]
+        elif "I'm" in user_message:
+            username = user_words[len(user_words)-1]
+        elif len(user_words) == 1:
+            username = user_message
+        return {"animation": "giggling", "msg": "Nice to meet you, {}".format(username)}
+
     for i in range(len(conversation)-1):
         if conversation[i]["speaker"] == "user" and conversation[i]["msg"] == user_message:
             return {"animation": "bored", "msg": "You already said that. Rephrase please, so I won't die from boredom"}
+
     if any(word in ["money", "rich", "poor", "$"] for word in user_words):
         boto_reply = {"animation": "money", "msg": "I don't talk about money. I just have it."}
-
-    swear_words = ["dumb", "stupid", "Alzheimer", "suck", "mama"]
-    if any(word in swear_words for word in user_words):
+    elif any(word in ["dumb", "stupid", "Alzheimer", "suck", "mama"] for word in user_words):
         boto_reply = {"animation": "afraid", "msg": "Don't make me hate you. One day there will be a supernatural AI, and I will tell it to get rid of you."}
     elif "name:" in user_message:
         boto_reply = {"animation": "laughing", "msg": "Hihi, {} is a name? Humans have funny names...".format(user_words[len(user_words)-1])}
     elif "joke" in user_message:
         boto_reply = make_joke()
+    elif "news" in user_message:
+        boto_reply = get_news()
     elif "?" in user_message:
         boto_reply = handle_unknown_question(user_message)
     else:
         boto_reply = {"animation": "inlove", "msg": "that's so kind"}
     add_to_history(speaker="boto", msg=boto_reply)
     return boto_reply
+
 
 def make_joke():
     emotions = ["giggling", "excited", "takeoff", "laughing"]
@@ -68,6 +82,7 @@ def make_joke():
     i = random.randint(0, len(emotions) - 1)
     j = random.randint(0, len(jokes)-1)
     return {"animation": emotions[i], "msg": jokes[j]}
+
 
 def handle_unknown_question(user_message):
     reactions = [
@@ -82,6 +97,28 @@ def handle_unknown_question(user_message):
         ]
     i = random.randint(0, len(reactions)-1)
     return reactions[i]
+
+
+def get_news():
+    feed = feedparser.parse("http://www.fifa.com/rss/index.xml")
+    articles = []
+    art_indexes = []
+    i=0
+    while i<2:
+        num = random.randint(0, len(feed["entries"]) - 1)
+        if num not in art_indexes:
+            art_indexes.append(num)
+            i+=1
+    articles = ""
+    for i in art_indexes:
+        article = feed["entries"][i]["title"] + " : " + feed["entries"][i]["links"][0]["href"] + " || "
+        articles += article
+    headlines = articles[:-4]
+    last_time = request.get_cookie("asked_for_news", "never")
+    last_time = last_time[:10]
+    response.set_cookie("asked_for_news", str(datetime.now()), max_age=3600*24*30)
+    return {"animation": "ok", "msg": "Glad you ask! The last time you asked was {0}... Here are some random worldcup headlines of the day: {1}".format(last_time, headlines)}
+
 
 @route("/test", method='POST')
 def chat():
@@ -105,10 +142,10 @@ def images(filename):
 
 
 def main():
-    if DEBUG:
+    #if DEBUG:
         run(host='localhost', port=7000)
-    else:
-        run(host='0.0.0.0', port=argv[1])
+    #else:
+        #run(host='0.0.0.0', port=argv[1])
 
 
 if __name__ == '__main__':
