@@ -5,14 +5,9 @@ from bottle import route, run, template, static_file, request, response, debug
 import json
 import re
 import random
-import os
 from sys import argv
 import feedparser
 from datetime import datetime
-
-#DEBUG = os.environ.get("DEBUG")
-#debug(False)
-
 
 conversation = []
 
@@ -142,10 +137,8 @@ def images(filename):
 
 
 def main():
-    #if DEBUG:
-        #run(host='localhost', port=7000)
-    #else:
-        run(host='0.0.0.0', port=argv[1])
+    #run(host='0.0.0.0', port=argv[1])
+    run(host='localhost', port=7000)
 
 
 if __name__ == '__main__':
