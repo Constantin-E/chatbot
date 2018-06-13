@@ -1,11 +1,15 @@
 """
 This is the template server side for ChatBot
 """
-from bottle import route, run, template, static_file, request, response
+from bottle import route, run, template, static_file, request, debug
 import json
 import re
 import random
+import os
 from sys import argv
+
+DEBUG = os.environ.get("DEBUG")
+debug(True)
 
 conversation = []
 
@@ -101,7 +105,10 @@ def images(filename):
 
 
 def main():
-    run(host='0.0.0.0', port=argv[1])
+    if DEBUG:
+        run(host='localhost', port=7000)
+    else:
+        run(host='0.0.0.0', port=argv[1])
 
 
 if __name__ == '__main__':
