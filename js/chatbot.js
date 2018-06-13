@@ -123,7 +123,8 @@ ChatBot.write = function (message, sender, emoji) {
     }
     var chatScreen = $(".chat-screen");
     sender = $("<span />").addClass("sender").addClass(sender).text(sender + ":");
-    var msgContent = $("<span />").addClass("msg").text(message);
+    var msgContent = $("<span />").addClass("msg");
+    msgContent[0].innerHTML = message
     var newLine = $("<div />").addClass("msg-row");
     newLine.append(sender).append(msgContent);
     chatScreen.append(newLine);

@@ -20,8 +20,6 @@ def index():
 def chat():
     user_message = request.POST.get('msg')
     add_to_history(speaker="user", msg=user_message)
-    # previous_conversation = request.get_cookie("saved_conversation", "Beginning of conversation")
-    # response.set_cookie("saved_conversation", user_message, max_age=120) #currently, saved convo has only the last user message, not the entire history.
     return json.dumps(process_sentence(user_message))
 
 
@@ -106,11 +104,13 @@ def get_news():
             i+=1
     articles = ""
     for i in art_indexes:
-        article = feed["entries"][i]["title"] + " : " + feed["entries"][i]["links"][0]["href"] + " || "
+        link = feed["entries"][i]["links"][0]["href"]
+        title = feed["entries"][i]["title"]
+        article = "<a href='{0}'>{1} </a> || ".format(link, title)
         articles += article
-    headlines = articles[:-4]
+        headlines = articles[:-4]
     last_time = request.get_cookie("asked_for_news", "never")
-    last_time = last_time[:10]
+    last_time = last_time[:16]
     response.set_cookie("asked_for_news", str(datetime.now()), max_age=3600*24*30)
     return {"animation": "ok", "msg": "Glad you ask! The last time you asked was {0}... Here are some random worldcup headlines of the day: {1}".format(last_time, headlines)}
 
@@ -137,7 +137,12 @@ def images(filename):
 
 
 def main():
-    run(host='0.0.0.0', port=argv[1])
+    import os
+    DEBUG = os.environ.get("DEBUG")
+    if DEBUG:
+        run(host="localhost", port=7000)
+    else:
+        run(host='0.0.0.0', port=argv[1])
 
 
 if __name__ == '__main__':
