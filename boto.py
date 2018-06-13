@@ -5,6 +5,7 @@ from bottle import route, run, template, static_file, request, response
 import json
 import re
 import random
+from sys import argv
 
 conversation = []
 
@@ -101,6 +102,7 @@ def images(filename):
 
 def main():
     run(host='0.0.0.0', port=argv[1])
+
 
 if __name__ == '__main__':
     main()
