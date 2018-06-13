@@ -137,8 +137,8 @@ def images(filename):
 
 
 def main():
-    #run(host='0.0.0.0', port=argv[1])
-    run(host='localhost', port=7000)
+    run(host='0.0.0.0', port=argv[1])
+    #run(host='localhost', port=7000)
 
 
 if __name__ == '__main__':
